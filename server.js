@@ -18,7 +18,7 @@ const usersRouter = require('./Routers/usersRouter');
 const app = express();
 
 //apply middleware
-// app.use(morgan('common'));//log http layer
+app.use(morgan('common'));//log http layer
 app.use(express.json());//parse incoming json from PUT or POST
 
 //serve static resources
@@ -38,7 +38,7 @@ app.use('/api/users', usersRouter);
 
 // catch-all endpoint if client makes request to non-existent endpoint
 app.use("*", function (req, res) {
-    res.status(404).json({ message: "🌴Page Not Found👻" });
+    return res.status(404).json({ message: "🌴Page Not Found👻" });
 });
 //alternative to above.....
 //import the HttpError class 
@@ -50,20 +50,20 @@ app.use((req, res, next) => {
 */
 
 //error handling middleware
-app.use((error, req, res, next) => {
-    //this if statement deletes the image that was uploaded if there was an error.
-    if (req.file) {
-        fs.unlink(req.file.path, (err) => {
-            console.log(err);
-        });
-    };
+// app.use((error, req, res, next) => {
+//     //this if statement deletes the image that was uploaded if there was an error.
+//     if (req.file) {
+//         fs.unlink(req.file.path, (err) => {
+//             console.log(err);
+//         });
+//     };
 
-    if (res.headerSent) {
-        return next(erorr);
-    }
-    res.status(error.code || 500).json({ message: error.message || 'Whooops, an unknown error has occured on the server side.' })
+//     if (res.headerSent) {
+//         return next(erorr);
+//     }
+//     res.status(error.code || 500).json({ message: error.message || 'Whooops, an unknown error has occured on the server side.' })
 
-});
+// });
 
 
 //create server variable to assign later.
