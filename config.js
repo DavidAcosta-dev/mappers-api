@@ -6,6 +6,6 @@ exports.TEST_DATABASE_URL = process.env.TEST_DATABASE_URL || `mongodb://localhos
 
 exports.PORT = process.env.PORT || 8080;
 
-exports.GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+exports.GOOGLE_API_KEY = process.env.GOOGLE_API_KEY || 'AIzaSyA8U3aJJIMrvWvsxag2L5J1sBCAiMYVztk';
 
-exports.JWT_KEY_SECRET = process.env.JWT_KEY_SECRET;
+exports.JWT_KEY_SECRET = process.env.JWT_KEY_SECRET || 'holy_rain_server_secret';
