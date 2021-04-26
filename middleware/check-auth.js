@@ -26,7 +26,6 @@ module.exports = (req, res, next) => {
 
         //since it passed verification, add a userId property and execute next() so it can reach the other endpoints like post, patch, delete
         req.userData = { userId: decodedToken.userId };
-        console.log(req.userData);
         next();
     } catch (err) {
         const error = new HttpError(`auth token failure. Please ensure a valid bearer token is set in the authorization header. ${err.reason}`, 403);

@@ -51,7 +51,6 @@ const getUserById = (req, res, next) => {
 
     User.findById(req.params.id)
         .then(user => {
-            console.log(user);
             if (!user) {
                 const error = new HttpError('Could not find any user for the provided user id.', 404);
                 return next(error);
@@ -90,8 +89,6 @@ const signupNewUser = (req, res, next) => {
                 const error = new HttpError('Looks like that email is already in use. Please login instead.', 422);
                 return next(error);
             }
-
-            console.log(req.body.password);
 
             const { firstName, lastName, email, password } = req.body;
 
@@ -159,7 +156,6 @@ const signupNewUser = (req, res, next) => {
 const loginUser = (req, res, next) => {
     //normalize email...
     req.body.email = req.body.email.toLowerCase();
-    console.log(req.body.email);
     //check if user already exists by querying for email
     User.findOne({ email: req.body.email })
         .then(user => {
@@ -192,10 +188,6 @@ const loginUser = (req, res, next) => {
                         user: user.easyRead(),
                         token
                     };
-
-
-                    console.log(response);
-
 
                     return res.status(200).json(response).end();
                 })

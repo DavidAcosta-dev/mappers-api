@@ -127,7 +127,6 @@ const patchPlaceById = (req, res, next) => {
         };
     });
 
-    console.log(newBody);
 
     Place.findById(req.params.id)
         .then(place => {

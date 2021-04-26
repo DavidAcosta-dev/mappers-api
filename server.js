@@ -18,7 +18,7 @@ const usersRouter = require('./Routers/usersRouter');
 const app = express();
 
 //apply middleware
-app.use(morgan('common'));//log http layer
+// app.use(morgan('common'));//log http layer
 app.use(express.json());//parse incoming json from PUT or POST
 
 //serve static resources
@@ -128,10 +128,6 @@ if (require.main === module) {
     runServer(DATABASE_URL)
         .catch(err => console.error(err));
 }
-
-// app.listen(process.env.PORT || 8080, () => {
-//     console.log(`Server is now listening to PORT ${process.env.PORT || 8080}`);
-// });
 
 
 module.exports = { app, runServer, closeServer };
