@@ -1,6 +1,6 @@
 "use strict";
 
-exports.DATABASE_URL = process.env.DATABASE_URL || `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@merncluster0.lvrru.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
+exports.DATABASE_URL = process.env.DATABASE_URL || `mongodb+srv://acosta816:lany816@merncluster0.lvrru.mongodb.net/myPlaces?retryWrites=true&w=majority`;
 
 exports.TEST_DATABASE_URL = process.env.TEST_DATABASE_URL || `mongodb://localhost/Test-Blogful-local-2021`;
 
