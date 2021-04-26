@@ -5,6 +5,7 @@ const router = express.Router();
 const { check } = require('express-validator');
 
 const usersControllers = require('../controllers/usersController.js');
+const fileUpload = require('../middleware/file-upload.js');
 
 
 
@@ -15,7 +16,8 @@ router.get('/:id', usersControllers.getUserById);
 router.get('/', usersControllers.getUsers);
 
 //POST new user
-router.post('/signup', usersControllers.signupNewUser);
+router.post('/signup', fileUpload.single('image'), usersControllers.signupNewUser);
+
 
 //Login existing user
 router.post('/login', usersControllers.loginUser);

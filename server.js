@@ -5,6 +5,9 @@ const mongoose = require('mongoose');
 mongoose.Promise = require('morgan');
 const morgan = require('morgan');
 
+const fs = require('fs');
+const path = require('path');
+
 //import environment variables
 const { DATABASE_URL, PORT } = require('./config');
 
@@ -17,6 +20,17 @@ const app = express();
 //apply middleware
 app.use(morgan('common'));//log http layer
 app.use(express.json());//parse incoming json from PUT or POST
+
+//serve static resources
+app.use("/uploads/images", express.static(__dirname + "/uploads/images"));
+
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Origin, X-Requested-With, Accept, Authorization');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE, OPTIONS');
+    next();
+});
+
 
 //apply router middleware
 app.use('/api/places', placesRouter);
@@ -37,6 +51,13 @@ app.use((req, res, next) => {
 
 //error handling middleware
 app.use((error, req, res, next) => {
+    //this if statement deletes the image that was uploaded if there was an error.
+    if (req.file) {
+        fs.unlink(req.file.path, (err) => {
+            console.log(err);
+        });
+    };
+
     if (res.headerSent) {
         return next(erorr);
     }

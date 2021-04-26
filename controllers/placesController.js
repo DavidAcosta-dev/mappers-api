@@ -6,51 +6,14 @@ const { validationResult } = require('express-validator');
 const HttpError = require('../models/http-error');
 const getCoordsForAddress = require('../util/location');
 
-const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
+
 const { Place } = require('../models/place');
-
-
-//Temporary dummy data
-const DUMMY_DATA = [
-    {
-        id: 'p1',
-        title: 'Empire State Building',
-        description: 'One of the most famous sky scrapers in the world!',
-        location: {
-            lat: 40.7484474,
-            lng: -73.9871516
-        },
-        address: '100 new york drive, 898808, NYC, NY',
-        creator: 'u1'
-    },
-    {
-        id: 'p2',
-        title: 'El Dorado.',
-        description: 'Its a fabled city of Gold lost to time in the middle of the central american jungles.',
-        location: {
-            lat: 200,
-            lng: -360
-        },
-        address: 'Middle of the Jungle???',
-        creator: 'u2'
-    },
-    {
-        id: 'p3',
-        title: 'CAve of Wonders',
-        description: 'A forbidden cave holding the lamp. Only the diamond in the rough may enter.',
-        location: {
-            lat: 33.542345345234,
-            lng: -52.9872345324
-        },
-        address: 'Arabia',
-        creator: 'u2'
-    }
-];
 
 
 //----------------------------------Pure logic for handling requests...--------------------------
 
-//Get place by id
+//-------------------------------Get place by id-------------------------------------------
 const getPlaceById = (req, res, next) => {
     console.log('GET request in Places');
     const placeId = req.params.id;
@@ -61,7 +24,7 @@ const getPlaceById = (req, res, next) => {
                 const error = new HttpError('Could not find any place for the provided place id.', 404);
                 return next(error);
             };
-            return res.status(200).json(plc);
+            return res.status(200).json(plc.easyRead());
         })
         .catch(err => {
             const error = new HttpError(`Could not fetch place: ${err.reason}`, 500);
@@ -82,7 +45,8 @@ const getPlacesByCreatorId = (req, res, next) => {
             if (places.length < 1) {
                 return next(new HttpError('Could not find any place for the provided creator id.', 404));
             }
-            return res.status(200).json(places).end();
+
+            return res.status(200).json(places.map(plc => plc.easyRead())).end();
         })
         .catch(err => {
             const error = new HttpError(`Could not fetch any places, internal server error, whoops, sorry! :S ${err.reason}`, 500);
@@ -94,7 +58,7 @@ const getPlacesByCreatorId = (req, res, next) => {
 
 
 
-//POST new place
+//---------------POST new place-------------------------------------------------------
 const createNewPlace = async (req, res, next) => {
     console.log('POSTing new place');
     /*
@@ -127,9 +91,18 @@ const createNewPlace = async (req, res, next) => {
         return next(error);
     };
 
-    Place.create({ title, description, image: "https://i.ibb.co/cDvQyJ8/default-Place-Icon.jpg", address, location: coordinates, creator })
+    const newPlace = { title, description, address, location: coordinates, creator: req.userData.userId };
+
+    if (req.file) {
+        newPlace.image = req.file.path.replace("\\", "/");
+    }
+
+    Place.create(newPlace)
         .then(plc => {
-            res.status(201).json(plc).end();
+            Place.findById(plc.id)
+                .then(place => {
+                    return res.status(201).json(place.easyRead()).end();
+                });
         })
         .catch(err => {
             const error = new HttpError(`Failed Creating place: ${err}`, 500);
@@ -141,18 +114,12 @@ const createNewPlace = async (req, res, next) => {
 
 
 
-//PATCH an existing place using id
+//-----------------PATCH an existing place using id-----------------------------------------
 const patchPlaceById = (req, res, next) => {
     console.log('Updating place...');
-    //ensure body id and url id match
-    if (req.params.id !== req.body.id) {
-        const errMsg = "Please ensure the req.body.id and url params id match. Must include both.";
-        console.error(errMsg);
-        res.status(400).send(errMsg).end();
-    };
 
     //make new object out of all valid fields in updateableFields
-    const updateableFields = ["title", "description"];
+    const updateableFields = ["title", "description", "image"];
     const newBody = {};
     updateableFields.forEach(field => {
         if (field in req.body) {
@@ -162,28 +129,71 @@ const patchPlaceById = (req, res, next) => {
 
     console.log(newBody);
 
-    DUMMY_DATA.find(place => {
-        if (place.id === req.body.id) {
-            DUMMY_DATA[place] = Object.assign(place, newBody);
-        }
-    });
-    const updatedPlace = DUMMY_DATA.find(place => place.id === req.params.id);
-    res.status(200).json(updatedPlace);
+    Place.findById(req.params.id)
+        .then(place => {
+
+            //if place was found, validate that the user logged in is authorized to update it.
+            if (place.creator.id !== req.userData.userId) {
+                const error = new HttpError(`You are not authorized to edit this place.`, 401);
+                return next(error);
+            };
+
+            //if authorized, update as intended.
+            Place.findByIdAndUpdate(req.params.id, { $set: newBody }, { new: true })
+                .then(place => {
+                    Place.findById(place.id)
+                        .then(plc => {
+                            return res.status(200).json(plc.easyRead()).end();
+                        });
+                })
+                .catch(err => {
+                    const error = new HttpError(`Failed to update place, ${err.reason}.`, 500);
+                    return next(error);
+                });
+
+        })
+        .catch(err => {
+            const error = new HttpError(`Could not find place. ${err.reason}.`, 500);
+            return next(error);
+        });
+
+
+
+
 };
+//--------------------------------END of PATCH /places/:id-----------------------------------//
 
 
 
 //DELETE place by id
 const deletePlaceById = (req, res, next) => {
-    // const DUMMY_DATA.find(place=> place.id === req.params.id);
-    const itemIndexToDelete = DUMMY_DATA.findIndex(place => place.id === req.params.id);
-    console.log(itemIndexToDelete);
-    if (itemIndexToDelete < 0) { //this means it doesn't exist.
-        throw new HttpError('Could not find place by that id.', 401);
-    };
-    DUMMY_DATA.splice(itemIndexToDelete, 1);
-    //DUMMY_DATA = DUMMY_DATA.filter(place => place.id !== req.params.id);  <--- this works too but only if you make the dummydata a let instead of a const at top.
-    return res.status(200).end();
+    let imagePath;
+
+    Place.findById(req.params.id)
+        .then(place => {
+
+            if (place.creator.id !== req.userData.userId) {
+                const error = new HttpError(`You are not authorized to delete this place.`, 401);
+                return next(error);
+            };
+
+            imagePath = place.image;// we will delete this later...
+
+            Place.findByIdAndDelete(req.params.id)
+                .then(() => {
+                    //now that the place has been deleted, just delete the image.
+                    fs.unlink(imagePath, err => {
+                        console.log(err);
+                    });
+                    return res.status(200).json(`Successfully deleted place with it of ${req.params.id}.`).end();
+                })
+                .catch(err => {
+                    const error = new HttpError(`Failed to delete place, ${err.reason}.`, 500);
+                    return next(error);
+                });
+        });
+
+
 };
 
 

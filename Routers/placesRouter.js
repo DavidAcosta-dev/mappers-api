@@ -5,7 +5,8 @@ const router = express.Router();
 // const { check } = require('express-validator');
 
 const placeControllers = require('../controllers/placesController');
-
+const checkAuth = require('../middleware/check-auth');
+const fileUpload = require('../middleware/file-upload');
 
 
 
@@ -18,8 +19,11 @@ router.get('/:id', placeControllers.getPlaceById);
 //GET places by place's creator id
 router.get('/user/:id', placeControllers.getPlacesByCreatorId);
 
+//JWT middleware. If a request does not have a valid token, it won't make it past this middleware.
+router.use(checkAuth);
+
 //POST a new place
-router.post('/', placeControllers.createNewPlace);
+router.post('/', fileUpload.single('image'), placeControllers.createNewPlace);
 
 //PATCH an existing place by id
 router.patch('/:id', placeControllers.patchPlaceById);
