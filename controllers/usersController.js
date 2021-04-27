@@ -19,8 +19,10 @@ const getUsers = (req, res, next) => {
         console.log("no query specified. Getting ALL users.");
         User.find()
             .then(users => {
-                return res.status(200).json(users.map(usr => usr.easyRead())).end();
+                res.status(200)
+                return res.json(users.map(usr => usr.easyRead())).end();
             });
+        return
     };
 
     const filters = {};

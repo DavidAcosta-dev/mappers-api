@@ -2,7 +2,7 @@
 //imports
 const express = require('express');
 const mongoose = require('mongoose');
-mongoose.Promise = require('morgan');
+mongoose.Promise = global.Promise;
 const morgan = require('morgan');
 
 const fs = require('fs');
@@ -50,20 +50,20 @@ app.use((req, res, next) => {
 */
 
 //error handling middleware
-// app.use((error, req, res, next) => {
-//     //this if statement deletes the image that was uploaded if there was an error.
-//     if (req.file) {
-//         fs.unlink(req.file.path, (err) => {
-//             console.log(err);
-//         });
-//     };
+app.use((error, req, res, next) => {
+    //this if statement deletes the image that was uploaded if there was an error.
+    if (req.file) {
+        fs.unlink(req.file.path, (err) => {
+            console.log(err);
+        });
+    };
 
-//     if (res.headerSent) {
-//         return next(erorr);
-//     }
-//     res.status(error.code || 500).json({ message: error.message || 'Whooops, an unknown error has occured on the server side.' })
+    if (res.headerSent) {
+        return next(erorr);
+    }
+    res.status(error.code || 500).json({ message: error.message || 'Whooops, an unknown error has occured on the server side.' })
 
-// });
+});
 
 
 //create server variable to assign later.
