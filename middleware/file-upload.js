@@ -1,5 +1,4 @@
 const multer = require('multer');
-const { v4: uuidv4 } = require('uuid');
 
 MIME_TYPE_MAP = {
     'image/png': 'png',
@@ -16,7 +15,7 @@ const fileUpload = multer({
         },
         filename: (req, file, cb) => {
             const fileExtension = MIME_TYPE_MAP[file.mimetype];
-            cb(null, uuidv4() + '.' + fileExtension);
+            cb(null, Math.floor((Math.random() * 10) + 1) + '.' + fileExtension);
         }
     }),
     fileFilter: (req, file, cb) => {
