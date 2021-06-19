@@ -4,6 +4,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 const morgan = require('morgan');
+const helmet = require('helmet');//helps to hide sensetive header info
+// const cors = require('cors');
 
 const fs = require('fs');
 const path = require('path');
@@ -19,11 +21,14 @@ const app = express();
 
 //apply middleware
 app.use(morgan('common'));//log http layer
+app.use(helmet());//hide certain headers
+// app.use(cors()); //<--this is optional. we rolled out our own cors middleware below.
 app.use(express.json());//parse incoming json from PUT or POST
 
 //serve static resources
 app.use("/uploads/images", express.static(__dirname + "/uploads/images"));
 
+//Rolled out our own Cors middleware
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Content-Length, Origin, X-Requested-With, Accept, Authorization');
@@ -41,7 +46,7 @@ app.use("*", function (req, res) {
     return res.status(404).json({ message: "🌴Page Not Found👻" });
 });
 //alternative to above.....
-//import the HttpError class 
+//import the HttpError class model we made and use it below
 /*
 app.use((req, res, next) => {
     const error = new HttpError("🌴Page Not Found👻", 404);

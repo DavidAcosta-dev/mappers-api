@@ -20,6 +20,7 @@ router.get('/:id', placeControllers.getPlaceById);
 router.get('/user/:id', placeControllers.getPlacesByCreatorId);
 
 //JWT middleware. If a request does not have a valid token, it won't make it past this middleware.
+//As you can see we place it below the get routes since we don't need authentication to simply retrieve routes, just to alter them.
 router.use(checkAuth);
 
 //POST a new place
